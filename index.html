@@ -18,7 +18,7 @@
 <body>
 
     <div class="w-screen h-screen fixed inset-0 bg-gray-800 text-gray-100" x-data="{
-        screen: 'welcome',
+        screen: 'call',
         roomID: null,
         video: true,
         audio: false,
@@ -64,7 +64,7 @@
 
         <div x-show="screen == 'call'" x-cloak class="w-full h-full flex flex-col">
             
-            <div class="w-full h-5/6 flex relative">
+            <div class="w-full h-full flex relative">
                 <video id="video1" autoplay playsinline class="fixed bg-black w-28 h-40 sm:w-64 left-4 top-4"></video>
                 <video id="video2" autoplay playsinline class="bg-gray-900 w-full h-full"></video>
             </div>
@@ -91,6 +91,8 @@
                     <svg class="fill-current transform scale-150" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 18c0 1.104-.896 2-2 2h-12c-1.105 0-2-.896-2-2v-12c0-1.104.895-2 2-2h12c1.104 0 2 .896 2 2v12zm8-14l-6 6.223v3.554l6 6.223v-16z"/></svg>
                 </button>
             </div>
+
+            <div class="h-20 sm:h-0"></div>
         </div>
 
     </div>
