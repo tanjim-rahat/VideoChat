@@ -19,16 +19,18 @@
 
     <div class="w-screen h-screen fixed inset-0 bg-gray-800 text-gray-100" x-data="{
         screen: 'welcome',
-        roomID: null
+        roomID: null,
+        video: true,
+        audio: false,
     }">
 
         <div x-show="screen == 'welcome'" class="w-full h-full flex flex-col items-center justify-center">
 
-            <h1 class="font-bold text-4xl -mt-20">Welcome to the VideoChat</h1>
+            <h1 class="font-bold text-center text-4xl -mt-20">Welcome to the VideoChat</h1>
 
-            <input type="text" class="w-96 mt-20 px-4 py-2 text-center font-semibold rounded border bg-transparent" placeholder="Generte or Enter Code" x-model="roomID">
+            <input type="text" class="w-4/5 sm:w-96 mt-20 px-4 py-2 text-center font-semibold rounded border bg-transparent text-xs sm:text-sm" placeholder="Generte or Enter Code" x-model="roomID">
 
-            <div class="w-96 mt-6 flex gap-x-4">
+            <div class="w-4/5 sm:w-96 mt-6 flex gap-x-4">
 
                 <button class="px-4 py-2 shadow rounded bg-indigo-500 w-full" @click="roomID = crypto.randomUUID()">Generate</button>
 
@@ -36,19 +38,19 @@
                     if (roomID) {
                         screen = 'call'
                         APP.roomID = roomID
-                        init()
+                        init((s) => screen = s)
                     }
                 }">Enter</button>
             </div>
 
             
-            <div x-show="roomID" x-cloak class="w-96 flex items-center gap-4 mt-6">
+            <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 flex items-center gap-4 mt-6">
                 <span class="w-full border-t"></span>
                 <span>Share</span>
                 <span class="w-full border-t"></span>
             </div>
 
-            <div x-show="roomID" x-cloak class="w-96 mt-6 flex gap-x-4 justify-center items-center">
+            <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 mt-12 flex gap-x-4 justify-center items-center">
 
                 <button title="Copy" @click="() => {
                     navigator.clipboard.writeText(roomID)
@@ -63,12 +65,15 @@
         <div x-show="screen == 'call'" x-cloak class="w-full h-full flex flex-col">
             
             <div class="w-full h-5/6 flex relative">
-                <video id="video1" autoplay playsinline class="fixed bg-black w-64 h-40 left-8 top-8"></video>
+                <video id="video1" autoplay playsinline class="fixed bg-black w-28 h-40 sm:w-64 left-4 top-4"></video>
                 <video id="video2" autoplay playsinline class="bg-gray-900 w-full h-full"></video>
             </div>
             
             <div class="w-full h-1/6 mt-auto p-8 flex gap-x-12 justify-center items-center">
-                <button class="text-indigo-500">
+                <button :class="audio ? 'text-indigo-500' : 'text-gray-500'" @click="() => {
+                    audio = !audio
+                    toggleAudio()
+                }">
                     <svg class="fill-current transform scale-150" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 11c0 2.209-1.791 4-4 4s-4-1.791-4-4v-7c0-2.209 1.791-4 4-4s4 1.791 4 4v7zm4-2v2c0 4.418-3.582 8-8 8s-8-3.582-8-8v-2h2v2c0 3.309 2.691 6 6 6s6-2.691 6-6v-2h2zm-7 13v-2h-2v2h-4v2h10v-2h-4z"/></svg>
                 </button>
 
@@ -79,7 +84,10 @@
                     <svg class="fill-current transform scale-150" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3.445 17.827c-3.684 1.684-9.401-9.43-5.8-11.308l1.053-.519 1.746 3.409-1.042.513c-1.095.587 1.185 5.04 2.305 4.497l1.032-.505 1.76 3.397-1.054.516z"/></svg>
                 </button>
 
-                <button class="text-indigo-500">
+                <button :class="video ? 'text-indigo-500' : 'text-gray-500'"  @click="() => {
+                    video = !video
+                    toggleVideo()
+                }">
                     <svg class="fill-current transform scale-150" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 18c0 1.104-.896 2-2 2h-12c-1.105 0-2-.896-2-2v-12c0-1.104.895-2 2-2h12c1.104 0 2 .896 2 2v12zm8-14l-6 6.223v3.554l6 6.223v-16z"/></svg>
                 </button>
             </div>

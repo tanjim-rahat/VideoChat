@@ -17,12 +17,23 @@ chatClient.login({uid: APP.userID, token: APP.token})
 const localVideoEl = document.getElementById('video1')
 const remoteVideoEl = document.getElementById('video2')
 
-async function init () {    
+async function init (screen) {    
+    
+    const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true})
+    stream.getAudioTracks().forEach(track => track.enabled = false)
+
+    APP.localStream = stream
+    localVideoEl.srcObject = APP.localStream
     
     APP.channel = chatClient.createChannel(APP.roomID)
     
     APP.channel.on('MemberJoined', memberId => {
         createOffer()
+    })
+
+    APP.channel.on('MemberLeft', memberId => {
+        cut()
+        screen('welcome')
     })
 
     APP.channel.on('ChannelMessage', (msg, memberId) => {
@@ -46,32 +57,30 @@ async function init () {
     })
     
     await APP.channel.join()
-    
-    navigator.mediaDevices.getUserMedia({video: true, audio: false}).then(stream => {
-        APP.localStream = stream
-        localVideoEl.srcObject = APP.localStream
-    })
+
 }
 
 async function initPeerConnection () {
     const peerConnection = new RTCPeerConnection(APP.ICEServers)
 
-    APP.localStream.getTracks().forEach(track => peerConnection.addTrack(track))
-
-    remoteVideoEl.srcObject = APP.remoteStream
-
     peerConnection.ontrack = event => {
-        event.streams[0].getTracks().forEach(track => {
-            APP.remoteStream.addTrack(track)
-            console.log(track)
-        })
+        APP.remoteStream.addTrack(event.track)
+        // console.log(event)
+        // event.streams[0].getTracks().forEach(track => {
+        //     APP.remoteStream.addTrack(track)
+        //     console.log(track)
+        // })
     }
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
-            APP.channel.sendMessage(JSON.stringify({type: 'candidate', candidate: event.candidate}))
+            APP.channel.sendMessage({text: JSON.stringify({type: 'candidate', candidate: event.candidate})})
         }
     }
+
+    APP.localStream.getTracks().forEach(track => peerConnection.addTrack(track))
+
+    remoteVideoEl.srcObject = APP.remoteStream
     
     APP.peerConnection = peerConnection
 }
@@ -90,14 +99,30 @@ async function createAnswer (offer) {
 
     APP.peerConnection.setRemoteDescription(offer)
 
-    const answer = await APP.createAnswer()
+    const answer = await APP.peerConnection.createAnswer()
     APP.peerConnection.setLocalDescription(answer)
 
-    APP.channel.sendMessage(JSON.stringify({type: 'answer', answer: answer}))
+    APP.channel.sendMessage({text: JSON.stringify({type: 'answer', answer: answer})})
 }
+
+
+function toggleVideo () {
+    if (APP.localStream) {
+        APP.localStream.getVideoTracks().forEach(track => track.enabled = !track.enabled)
+    }
+}
+
+function toggleAudio () {
+    if (APP.localStream) {
+        APP.localStream.getAudioTracks().forEach(track => track.enabled = !track.enabled)
+    }
+}
+
 
 function cut () {
     APP.localStream.getTracks().forEach(track => track.stop())
     APP.localStream = null
     APP.channel.leave()
+
+    APP.peerConnection.close()
 }
