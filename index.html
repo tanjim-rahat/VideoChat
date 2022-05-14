@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoChat</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.2/cdn.min.js"></script>
+</head>
+<body>
+
+    <div class="w-screen h-screen fixed inset-0 bg-gray-800 text-gray-100" x-data="{
+        screen: 'welcome',
+        userID: crypto.randomUUID(),
+        roomID: null
+    }">
+
+        <div x-show="screen == 'welcome'" class="w-full h-full flex flex-col items-center justify-center">
+
+            <h1 class="font-bold text-4xl -mt-20">Welcome to the VideoChat</h1>
+
+            <input type="text" class="w-96 mt-20 px-4 py-2 text-center font-semibold rounded border bg-transparent" placeholder="Generte or Enter Code" x-model="roomID">
+
+            <div class="w-96 mt-6 flex gap-x-4">
+
+                <button class="px-4 py-2 shadow rounded bg-indigo-500 w-full" @click="roomID = crypto.randomUUID()">Generate</button>
+
+                <button class="px-4 py-2 shadow rounded bg-green-500 w-full">Enter</button>
+            </div>
+
+            
+            <div x-show="roomID" class="w-96 flex items-center gap-4 mt-6">
+                <span class="w-full border-t"></span>
+                <span>Share</span>
+                <span class="w-full border-t"></span>
+            </div>
+
+            <div x-show="roomID" class="w-96 mt-6 flex gap-x-4 justify-center items-center">
+
+                <button title="Copy" @click="() => {
+                    navigator.clipboard.writeText(roomID)
+                }">
+                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 6v-6h-18v18h6v6h18v-18h-6zm-16 10v-14h14v4h-10v10h-4z"/></svg>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+    
+</body>
+</html>
