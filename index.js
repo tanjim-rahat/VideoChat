@@ -41,17 +41,20 @@ async function init (screen) {
 
         if (msg.type == 'offer') {
             createAnswer(msg.offer)
+            console.log('GOT offer')
         }
 
         if (msg.type == 'answer') {
             if (!APP.peerConnection.currentRemoteDescription) {
                 APP.peerConnection.setRemoteDescription(msg.answer)
+                console.log('GOT answer')
             }
         }
 
         if (msg.type == 'candidate') {
             if (APP.peerConnection) {
                 APP.peerConnection.addIceCandidate(msg.candidate)
+                console.log('Added candidate')
             }
         }
     })
