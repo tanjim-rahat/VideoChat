@@ -7,7 +7,7 @@ const APP = {
     localStream: null,
     remoteStream: new MediaStream(),
     peerConnection: null,
-    ICEServers: [{urls:['stun.l.google.com:19302', 'stun1.l.google.com:19302', 'stun2.l.google.com:19302']}]
+    ICEServers: [{urls:['stun.ru-brides.com:3478']}]
 }
 
 const chatClient = AgoraRTM.createInstance(APP.id)
