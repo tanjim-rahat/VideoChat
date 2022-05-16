@@ -75,6 +75,7 @@ async function initPeerConnection () {
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
             APP.channel.sendMessage({text: JSON.stringify({type: 'candidate', candidate: event.candidate})})
+            console.log(event.candidate)
         }
     }
 
@@ -91,6 +92,8 @@ async function createOffer () {
     APP.peerConnection.createOffer().then(offer => {
         APP.peerConnection.setLocalDescription(offer)
         APP.channel.sendMessage({text:JSON.stringify({type: 'offer', offer: offer})})
+
+        console.log(offer)
     })
 }
 
@@ -102,7 +105,9 @@ async function createAnswer (offer) {
     const answer = await APP.peerConnection.createAnswer()
     APP.peerConnection.setLocalDescription(answer)
 
-    APP.channel.sendMessage({text: JSON.stringify({type: 'answer', answer: answer})})
+    APP.channel.sendMessage({text: JSON.stringify({type: 'answer', answer: answer})
+    })
+    console.log(answer)
 }
 
 
