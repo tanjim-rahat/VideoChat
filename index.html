@@ -7,6 +7,7 @@
     <title>VideoChat</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.2/cdn.min.js"></script>
 
     <style>
@@ -19,32 +20,56 @@
 
     <div class="w-screen h-screen fixed inset-0 bg-gray-800 text-gray-100" x-data="{
         screen: 'welcome',
+        userID: null,
         roomID: null,
         video: true,
         audio: false,
-    }">
+    }"
+    
+    x-init="async () => {
+        userID = await init(s => screen = s)
+    }"
+    >
 
         <div x-show="screen == 'welcome'" class="w-full h-full flex flex-col items-center justify-center">
 
             <h1 class="font-bold text-center text-4xl -mt-20">Welcome to the VideoChat</h1>
 
-            <input type="text" class="w-4/5 sm:w-96 mt-12 sm:mt-20 px-4 py-2 text-center font-semibold rounded border bg-transparent text-xs sm:text-sm" placeholder="Generte or Enter Code" x-model="roomID">
+            <input type="text" class="w-4/5 sm:w-96 mt-12 px-4 py-2 text-center font-semibold rounded border bg-transparent text-xs sm:text-sm" placeholder="Enter others ID" x-model="roomID">
+
+            <div x-cloak x-show="userID" class="w-4/5 sm:w-96 flex items-center justify-between mt-6">
+                <p>Your ID</p>
+                <div class="flex gap-2">
+                    <p x-text="userID" class="text-xs px-4 py-2 border-2 rounded"></p>
+                    <button title="Copy" @click="() => {
+                        navigator.clipboard.writeText(userID)
+                    }">
+                        <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 6v-6h-18v18h6v6h18v-18h-6zm-16 10v-14h14v4h-10v10h-4z"/></svg>
+                    </button>
+                </div>
+            </div>
 
             <div class="w-4/5 sm:w-96 mt-6 flex gap-x-4">
 
-                <button class="px-4 py-2 shadow rounded bg-indigo-500 w-full" @click="roomID = crypto.randomUUID()">Generate</button>
-
-                <button class="px-4 py-2 shadow rounded bg-green-500 w-full" @click="() => {
-                    if (roomID) {
+                <button :class="userID ? 'bg-red-500':'bg-gray-700 opacity-50'" class="px-4 py-2 shadow rounded w-full" @click="() => {
+                    if (userID) {
                         screen = 'call'
-                        APP.roomID = roomID
-                        init((s) => screen = s)
+                        startLocalStream()
                     }
+                }">Host</button>
+
+                <button :class="roomID ? 'bg-indigo-500':'bg-gray-700 opacity-50'" class="px-4 py-2 shadow rounded w-full" @click="() => {
+
+                    if (roomID && roomID !== userID) {
+                        peerCall(roomID)
+                        screen = 'call'
+                    }
+
                 }">Enter</button>
             </div>
 
             
-            <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 flex items-center gap-4 mt-6">
+            <!-- <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 flex items-center gap-4 mt-6">
                 <span class="w-full border-t"></span>
                 <span>Share</span>
                 <span class="w-full border-t"></span>
@@ -58,13 +83,13 @@
                     <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 6v-6h-18v18h6v6h18v-18h-6zm-16 10v-14h14v4h-10v10h-4z"/></svg>
                 </button>
 
-            </div>
+            </div> -->
 
         </div>
 
         <div x-show="screen == 'call'" x-cloak class="w-full h-full flex flex-col">
             
-            <div class="w-full h-full flex relative">
+            <div class="w-full h-5/6 flex relative">
                 <video id="video1" autoplay playsinline muted class="fixed bg-black w-28 h-40 sm:w-64 left-4 top-4"></video>
                 <video id="video2" autoplay playsinline class="bg-gray-900 w-full h-full"></video>
             </div>
@@ -98,7 +123,6 @@
     </div>
 
 
-    <script src="agora-rtm-sdk-1.4.4.js"></script>
     <script src="index.js"></script>
     
 </body>
