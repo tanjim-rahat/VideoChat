@@ -1,69 +1,115 @@
-const peer = new Peer()
+let peer, localStream, remoteStream, runningCall, incomingCall, runningConn, cut
 
-let localStream, remoteStream, runningCall
- 
 const localVideoEl = document.getElementById('video1')
 const remoteVideoEl = document.getElementById('video2')
 
-async function init (screen) {
+async function init (screen, showMessage) {
+
+    cut = () => {
+
+        if (runningConn) runningConn.close()
+        runningConn = null
+    
+        localStream && localStream.getTracks().forEach(track => track.stop())
+        localStream = null
+        
+        if (runningCall) {
+            
+            runningCall.close()
+            runningCall = null
+            
+            remoteStream = null            
+
+            screen('welcome')
+            showMessage('Call Ended')
+
+        }
+    }
+
     return new Promise((resolve, reject) => {
-        peer.on('open', (id) => {
-
-            peer.on('connection', conn => {
-                console.log(conn)
-
-                conn.on('close', () => {
-                    localStream.getTracks().forEach(track => track.stop())
-                    localStream = null
-                    remoteStream = null
-
-                    screen('welcome')
-                })
-            })
+        
+        peer = new Peer()
+        
+        peer.on('open', id => {
 
             peer.on('call', call => {
+                
+                console.log('NEW CALL')                
 
-                call.answer(localStream)
+                runningCall = call
+                
+                if (localStream) {
+                    call.answer(localStream)
+                } else {
+                    incomingCall = call
+                }
 
                 call.on('stream', stream => {
                     remoteStream = remoteVideoEl.srcObject = stream
                 })
 
+                call.on('close', () => {
+                    console.log('CALL CLOSED')
+                    cut()
+                })
+
+            })
+
+            peer.on('connection', conn => {
+                runningConn = conn
+    
+                conn.on('close', () => {
+                    console.log('CONN CLOSED')
+                    cut()
+                })
             })
             
             resolve(id)
         })
+
+        peer.on('error', error => {
+            console.error(error)
+        })
     })
 }
 
+/**
+ * Collects the local stream of the user
+ */
 async function startLocalStream() {
     localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true})
     localStream.getAudioTracks().forEach(track => track.enabled = false)
     localVideoEl.srcObject = localStream
+
+    if (incomingCall) {
+        incomingCall.answer(localStream)
+        incomingCall = null
+    }
 }
 
 
-async function peerCall (id) {
+async function peerCall (id, screen) {
+    
     await startLocalStream()
+
+    const conn = runningConn = peer.connect(id)
     
-    const conn = peer.connect(id)
-    
-    const call = peer.call(id, localStream)
+    conn.on('data', data => {})
+
+    conn.on('close', () => {
+        console.log('CONN CLOSED')
+        cut()
+    })
+
+    const call = runningCall =  peer.call(id, localStream)
 
     call.on('stream', stream => {
         remoteStream = remoteVideoEl.srcObject = stream
     })
-
-    call.on('close', () => {
-        localStream.getTracks().forEach(track => track.stop())
-        localStream = null
-        remoteStream = null
-
-        conn.close()
-    })
-
-    runningCall = call
 }
+
+
+
 
 function toggleVideo () {
     if (localStream) {
@@ -75,8 +121,4 @@ function toggleAudio () {
     if (localStream) {
         localStream.getAudioTracks().forEach(track => track.enabled = !track.enabled)
     }
-}
-
-function cut () {
-    if (runningCall) runningCall.close()
 }

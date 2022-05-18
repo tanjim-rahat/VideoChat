@@ -24,10 +24,19 @@
         roomID: null,
         video: true,
         audio: false,
+        message: null,
+
+        showMessage: function (text, time = 2500) {
+            this.message = text
+            setTimeout(() => this.message = null, time)
+        }
     }"
     
     x-init="async () => {
-        userID = await init(s => screen = s)
+        userID = await init(s => screen = s, t => {
+            message = t
+            setTimeout(() => message = null, 2500)
+        })
     }"
     >
 
@@ -43,6 +52,7 @@
                     <p x-text="userID" class="text-xs px-4 py-2 border-2 rounded"></p>
                     <button title="Copy" @click="() => {
                         navigator.clipboard.writeText(userID)
+                        showMessage('ID copied', 1500)
                     }">
                         <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 6v-6h-18v18h6v6h18v-18h-6zm-16 10v-14h14v4h-10v10h-4z"/></svg>
                     </button>
@@ -51,39 +61,33 @@
 
             <div class="w-4/5 sm:w-96 mt-6 flex gap-x-4">
 
-                <button :class="userID ? 'bg-red-500':'bg-gray-700 opacity-50'" class="px-4 py-2 shadow rounded w-full" @click="() => {
+                <button :class="userID ? 'bg-red-500':'bg-gray-700 opacity-50'" class="px-4 py-2 shadow rounded w-full flex items-center justify-center gap-x-4" @click="async (event) => {
                     if (userID) {
-                        screen = 'call'
-                        startLocalStream()
+                        const spinner = event.target.querySelector('.animate-spin.hidden')
+                        
+                        if (spinner) {
+                            event.target.querySelector('.animate-spin').classList.remove('hidden')
+                            await startLocalStream()
+                            event.target.querySelector('.animate-spin').classList.add('hidden')
+                            screen = 'call'
+                            showMessage('Now Hosting')
+                        }
+
                     }
-                }">Host</button>
+                }">
+                    <svg class="fill-current animate-spin hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M13 0c3.667.305 6.863 2.26 8.851 5.129l-1.746 1.013c-1.634-2.273-4.182-3.84-7.105-4.133v-2.009zm-11 12c0-1.47.324-2.863.891-4.122l-1.737-1.007c-.733 1.558-1.154 3.292-1.154 5.129 0 1.837.421 3.571 1.153 5.129l1.738-1.008c-.567-1.259-.891-2.651-.891-4.121zm20 0c0 1.47-.324 2.863-.891 4.122l1.738 1.007c.732-1.558 1.153-3.292 1.153-5.129s-.421-3.571-1.153-5.129l-1.738 1.007c.567 1.259.891 2.652.891 4.122zm-1.895 5.858c-1.634 2.273-4.182 3.84-7.105 4.133v2.009c3.667-.305 6.863-2.26 8.851-5.129l-1.746-1.013zm-16.21-11.717c1.634-2.272 4.183-3.839 7.105-4.132v-2.009c-3.667.305-6.862 2.259-8.851 5.128l1.746 1.013zm7.105 15.85c-2.923-.293-5.471-1.86-7.105-4.133l-1.746 1.013c1.988 2.87 5.184 4.824 8.851 5.129v-2.009z"/></svg>
+                    Host
+                </button>
 
                 <button :class="roomID ? 'bg-indigo-500':'bg-gray-700 opacity-50'" class="px-4 py-2 shadow rounded w-full" @click="() => {
 
                     if (roomID && roomID !== userID) {
-                        peerCall(roomID)
+                        peerCall(roomID, s => screen = s)
                         screen = 'call'
                     }
 
                 }">Enter</button>
             </div>
-
-            
-            <!-- <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 flex items-center gap-4 mt-6">
-                <span class="w-full border-t"></span>
-                <span>Share</span>
-                <span class="w-full border-t"></span>
-            </div>
-
-            <div x-show="roomID" x-cloak class="w-4/5 sm:w-96 mt-12 flex gap-x-4 justify-center items-center">
-
-                <button title="Copy" @click="() => {
-                    navigator.clipboard.writeText(roomID)
-                }">
-                    <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 6v-6h-18v18h6v6h18v-18h-6zm-16 10v-14h14v4h-10v10h-4z"/></svg>
-                </button>
-
-            </div> -->
 
         </div>
 
@@ -120,8 +124,9 @@
             <div class="h-40 sm:h-0"></div>
         </div>
 
-    </div>
+        <div x-cloak x-show="message" class="fixed left-1/2 transform -translate-x-1/2 top-16 px-4 py-2 rounded text-sm font-medium text-white bg-indigo-500" x-text="message"></div>
 
+    </div>
 
     <script src="index.js"></script>
     
