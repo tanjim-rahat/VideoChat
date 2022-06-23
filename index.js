@@ -28,7 +28,7 @@ async function init (screen, showMessage) {
 
     return new Promise((resolve, reject) => {
         
-        peer = new Peer(Math.random().toString(32).split('.')[1].toUpperCase())
+        peer = new Peer(Math.random().toString(32).split('.')[1])
         
         peer.on('open', id => {
 
@@ -88,11 +88,11 @@ async function startLocalStream() {
 }
 
 
-async function peerCall (id, screen) {
+async function peerCall (id) {
     
     await startLocalStream()
 
-    const conn = runningConn = peer.connect(id)
+    const conn = runningConn = peer.connect(id.toLowerCase())
     
     conn.on('data', data => {})
 
