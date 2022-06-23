@@ -28,7 +28,7 @@ async function init (screen, showMessage) {
 
     return new Promise((resolve, reject) => {
         
-        peer = new Peer()
+        peer = new Peer(Math.random().toString(32).split('.')[1].toUpperCase())
         
         peer.on('open', id => {
 
